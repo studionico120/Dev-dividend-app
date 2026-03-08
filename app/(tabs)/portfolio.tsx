@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
   Animated,
 } from 'react-native';
-import Svg, { G, Path, Circle as SvgCircle, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle as SvgCircle } from 'react-native-svg';
+import { DonutChart, CHART_COLORS, OTHER_COLOR, type ChartItem } from '../../src/components/DonutChart';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, type Theme } from '../../src/contexts/ThemeContext';
 import { AdBanner } from '../../src/components/AdBanner';
+import { ShareModal } from '../../src/components/ShareModal';
 import { loadHoldingsWithStock, loadHoldings, loadStockCache, upsertStockCache } from '../../src/services/storage';
 import { getDividendInfo } from '../../src/services/stockService';
 import {
@@ -28,11 +30,6 @@ import { Sector } from '../../src/types';
 // 定数
 // ─────────────────────────────────────────────────────────
 
-const CHART_COLORS = [
-  '#4fc3f7', '#ff7043', '#66bb6a', '#ab47bc',
-  '#ffa726', '#26c6da', '#ef5350', '#8d6e63',
-];
-const OTHER_COLOR = '#757575';
 const OTHER_THRESHOLD = 3;
 
 const SECTOR_LABELS: Record<Sector, string> = {
@@ -52,16 +49,6 @@ const SECTOR_LABELS: Record<Sector, string> = {
 
 type DisplayMode   = 'dividend' | 'asset' | 'sector';
 type MarketFilter  = 'all' | 'jp' | 'us';
-
-type ChartItem = {
-  id: string;
-  displayName: string;
-  amount: number;
-  percentage: number;
-  color: string;
-  isOther?: boolean;
-  otherItems?: ChartItem[];
-};
 
 // ─────────────────────────────────────────────────────────
 // ヘルパー関数
@@ -284,137 +271,6 @@ function BreakdownList({
   );
 }
 
-// ─────────────────────────────────────────────────────────
-// カスタムドーナツチャート（react-native-svg 直接描画）
-// ─────────────────────────────────────────────────────────
-
-function f(n: number) { return n.toFixed(2); }
-
-function DonutChart({
-  items,
-  size,
-  surfaceColor,
-}: {
-  items: ChartItem[];
-  size: number;
-  surfaceColor: string;
-}) {
-  const total = items.reduce((sum, i) => sum + i.amount, 0);
-  if (total === 0 || items.length === 0) return null;
-
-  const cx = size / 2;
-  const cy = size / 2;
-  const outerR = size * 0.42;
-  const innerR = outerR * 0.56; // ドーナツ穴（中央テキスト用）
-
-  // 1アイテム（100%）の場合は Circle で描画（arc は 360° を描けないため）
-  if (items.length === 1) {
-    const item = items[0];
-    const labelR = (outerR + innerR) / 2;
-    return (
-      <Svg width={size} height={size}>
-        <SvgCircle cx={cx} cy={cy} r={outerR} fill={item.color} />
-        <SvgCircle cx={cx} cy={cy} r={innerR} fill={surfaceColor} />
-        <SvgText
-          x={cx} y={cy - 5 + labelR * 0}
-          fontSize={9} fill="#ffffff" textAnchor="middle" fontWeight="bold"
-        >
-          {item.displayName.length > 7 ? `${item.displayName.slice(0, 6)}…` : item.displayName}
-        </SvgText>
-        <SvgText
-          x={cx} y={cy + 6 + labelR * 0}
-          fontSize={9} fill="rgba(255,255,255,0.88)" textAnchor="middle"
-        >
-          100.0%
-        </SvgText>
-      </Svg>
-    );
-  }
-
-  let currentAngle = -Math.PI / 2; // 12時方向から開始
-
-  const slices = items.map((item) => {
-    const pct    = item.amount / total;
-    const sweep  = pct * 2 * Math.PI;
-    const start  = currentAngle;
-    const end    = currentAngle + sweep;
-    currentAngle = end;
-
-    const mid      = (start + end) / 2;
-    const largeArc = sweep > Math.PI ? 1 : 0;
-
-    // 外弧の始終点
-    const ox1 = cx + outerR * Math.cos(start);
-    const oy1 = cy + outerR * Math.sin(start);
-    const ox2 = cx + outerR * Math.cos(end);
-    const oy2 = cy + outerR * Math.sin(end);
-
-    // 内弧の始終点（逆向き）
-    const ix1 = cx + innerR * Math.cos(end);
-    const iy1 = cy + innerR * Math.sin(end);
-    const ix2 = cx + innerR * Math.cos(start);
-    const iy2 = cy + innerR * Math.sin(start);
-
-    const d = [
-      `M ${f(ox1)} ${f(oy1)}`,
-      `A ${f(outerR)} ${f(outerR)} 0 ${largeArc} 1 ${f(ox2)} ${f(oy2)}`,
-      `L ${f(ix1)} ${f(iy1)}`,
-      `A ${f(innerR)} ${f(innerR)} 0 ${largeArc} 0 ${f(ix2)} ${f(iy2)}`,
-      'Z',
-    ].join(' ');
-
-    // ラベル位置：リングの中間半径
-    const labelR = (outerR + innerR) / 2;
-    const lx = cx + labelR * Math.cos(mid);
-    const ly = cy + labelR * Math.sin(mid);
-
-    return { d, lx, ly, pct, item };
-  });
-
-  return (
-    <Svg width={size} height={size}>
-      {slices.map(({ d, lx, ly, pct, item }) => {
-        const pctStr  = `${(pct * 100).toFixed(1)}%`;
-        const name    = item.displayName;
-        // スライス幅に収まるよう名前を短縮
-        const nameStr = name.length > 7 ? `${name.slice(0, 6)}…` : name;
-        const showFull = pct >= 0.09;  // 名前+%を表示
-        const showPct  = pct >= 0.04;  // %のみ表示
-
-        return (
-          <G key={item.id}>
-            <Path d={d} fill={item.color} stroke={surfaceColor} strokeWidth={2} />
-            {showFull && (
-              <>
-                <SvgText
-                  x={lx} y={ly - 5}
-                  fontSize={9} fill="#ffffff" textAnchor="middle" fontWeight="bold"
-                >
-                  {nameStr}
-                </SvgText>
-                <SvgText
-                  x={lx} y={ly + 6}
-                  fontSize={9} fill="rgba(255,255,255,0.88)" textAnchor="middle"
-                >
-                  {pctStr}
-                </SvgText>
-              </>
-            )}
-            {!showFull && showPct && (
-              <SvgText
-                x={lx} y={ly + 4}
-                fontSize={8} fill="rgba(255,255,255,0.85)" textAnchor="middle"
-              >
-                {pctStr}
-              </SvgText>
-            )}
-          </G>
-        );
-      })}
-    </Svg>
-  );
-}
-
 function EmptyChartPlaceholder({
   size,
   styles,
@@ -447,6 +303,7 @@ export default function PortfolioScreen() {
   const [allHoldings, setAllHoldings]   = useState<HoldingWithStock[]>([]);
   const [isLoading, setIsLoading]       = useState(true);
   const [isOffline, setIsOffline]       = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
 
   const scaleAnim   = useRef(new Animated.Value(0.6)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -638,6 +495,25 @@ export default function PortfolioScreen() {
 
     </ScrollView>
     <AdBanner />
+
+    {hasChartData && (
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShareModalVisible(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="share-social-outline" size={22} color="#ffffff" />
+      </TouchableOpacity>
+    )}
+
+    <ShareModal
+      visible={shareModalVisible}
+      onClose={() => setShareModalVisible(false)}
+      items={groupedItems}
+      annualDividend={summary?.totalAnnualDividend ?? 0}
+      dividendYield={summary?.dividendYield ?? 0}
+      theme={theme}
+    />
     </View>
   );
 }
@@ -877,6 +753,23 @@ function makeStyles(theme: Theme) {
 
     adBannerSpace: {
       height: 60,
+    },
+
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 80,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: theme.accent,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
     },
   });
 }

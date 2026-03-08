@@ -2,7 +2,7 @@
   "expo": {
     "name": "配当管理",
     "slug": "dividend-tracker",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "scheme": "dividendtracker",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.leejaehee.dividendtracker",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "supportsTablet": true,
       "infoPlist": {
         "NSUserTrackingUsageDescription": "広告の表示を最適化するために使用します",
@@ -24,7 +24,7 @@
     },
     "android": {
       "package": "com.leejaehee.dividendtracker",
-      "versionCode": 3,
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a2e"
@@ -32,6 +32,11 @@
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_EXTERNAL_STORAGE"
       ],
       "softwareKeyboardLayoutMode": "pan",
       "edgeToEdgeEnabled": true,
@@ -44,6 +49,14 @@
       "expo-router",
       "expo-sqlite",
       "expo-tracking-transparency",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": false,
+          "savePhotosPermission": "配当ポートフォリオの画像を保存するために使用します",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       [
         "react-native-google-mobile-ads",
         {

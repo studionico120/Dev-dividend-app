@@ -296,6 +296,10 @@ export default function HomeScreen() {
     }
   }, [refresh]);
 
+  const maxMonthly = useMemo(() => {
+    return Math.max(...monthlyDividends.map(m => showAfterTax ? m.afterTax : m.preTax), 0);
+  }, [monthlyDividends, showAfterTax]);
+
   const chartData = useMemo(() => {
     const raw = monthlyDividends.map((m) => (showAfterTax ? m.afterTax : m.preTax));
     const hasNonZero = raw.some((v) => v > 0);
@@ -352,7 +356,12 @@ export default function HomeScreen() {
 
         {/* ── 月別棒グラフカード ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>月別配当金</Text>
+          <View style={styles.chartTitleRow}>
+            <Text style={styles.cardTitle}>月別配当金</Text>
+            {maxMonthly >= 10000 && (
+              <Text style={styles.chartUnitLabel}>（万円）</Text>
+            )}
+          </View>
 
           {isEmpty ? (
             <View style={styles.emptyChart}>
@@ -489,7 +498,16 @@ function makeStyles(theme: Theme) {
       color: theme.text,
       fontSize: 16,
       fontWeight: '600',
+    },
+    chartTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
       marginBottom: 12,
+    },
+    chartUnitLabel: {
+      color: theme.textMuted,
+      fontSize: 12,
+      marginLeft: 4,
     },
 
     // ── サマリーカード ──

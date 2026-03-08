@@ -24,6 +24,6 @@ export function formatCurrencyShort(amount: number): string {
 export function formatChartYLabel(yLabel: string): string {
   const n = parseFloat(yLabel);
   if (isNaN(n)) return yLabel;
-  if (n >= 10000) return `${(n / 10000).toFixed(0)}万`;
+  if (n >= 10000) return `${(n / 10000).toFixed(0)}`;
   return String(Math.round(n));
 }
