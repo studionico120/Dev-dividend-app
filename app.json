@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "配当管理",
+    "slug": "dividend-tracker",
+    "version": "1.0.5",
+    "scheme": "dividendtracker",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "bundleIdentifier": "com.leejaehee.dividendtracker",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "広告の表示を最適化するために使用します",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.leejaehee.dividendtracker",
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "softwareKeyboardLayoutMode": "pan",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-tracking-transparency",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5024642390821554~9349761736",
+          "iosAppId": "ca-app-pub-5024642390821554~1543782696"
+        }
+      ]
+    ],
+    "extra": {
+      "alphaVantageApiKey": "",
+      "jQuantsEmail": "",
+      "jQuantsPassword": "",
+      "usdJpyRate": "150",
+      "router": {},
+      "eas": {
+        "projectId": "31667457-5716-4e23-b2a9-444213d975f3"
+      }
+    }
+  }
+}

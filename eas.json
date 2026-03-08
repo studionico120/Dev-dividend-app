@@ -1,0 +1,46 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "STOCK_DATA_BASE_URL": "https://studionico120.github.io/DivTracker/",
+        "USD_JPY_RATE": "150",
+        "DEV_MODE": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "STOCK_DATA_BASE_URL": "https://studionico120.github.io/DivTracker/",
+        "USD_JPY_RATE": "150",
+        "DEV_MODE": "false"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "STOCK_DATA_BASE_URL": "https://studionico120.github.io/DivTracker/",
+        "USD_JPY_RATE": "150",
+        "DEV_MODE": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "あなたのApple ID",
+        "ascAppId": "App Store ConnectのアプリID（後で埋める）",
+        "appleTeamId": "あなたのチームID（後で埋める）"
+      },
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}
